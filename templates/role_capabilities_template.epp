@@ -1,0 +1,148 @@
+<%- | 
+      Hash $visiblecmdlets = {},
+      Optional[Array] $visiblealiases = [],
+      Optional[Hash] $visiblefunctions = {},
+      Optional[Array] $visiblecommands = [],
+      Optional[Array] $visibleproviders = [],
+      Optional[Array] $scriptstoprocessrole = [],
+      Optional[Hash] $aliasdefinitions = {},
+      Optional[Hash] $functiondefinitions = {},
+      Optional[Hash] $variabledefinitions = {},
+      Optional[Hash] $environmentvariables = {},
+      Optional[Array] $typestoprocess = [],
+      Optional[Array] $formatstoprocess = [],
+      Optional[Array] $modulestoimport = [],
+| -%>
+@{
+<% if $visiblealiases.size != 0 { -%>
+<% $fullvisiblealiases = $visiblealiases.map |$faliases| {"'${faliases}'"} -%>
+# Aliases to make visible when applied to a session
+VisibleAliases = <%= $fullvisiblealiases.join(',') %>
+<% } -%>
+<% if $visiblefunctions.size != 0 { -%>
+# Functions to make visible when applied to a session
+VisibleFunctions = 
+<% } -%>
+<% $fullfunctions = $visiblefunctions.map |$keyfunct, $valuesfunct| { -%>
+<%   if ! $valuesfunct { -%>
+<%-     "'${keyfunct}'" -%>
+<%   }else{ -%>
+<%     $parametersfunction = $valuesfunct['parameters'].map |$paramfunct| { -%>
+<%       if $valuesfunct['validatesets'] and $valuesfunct['validatesets'][$paramfunct] { -%>
+<%         $validsetsfunct = $valuesfunct['validatesets'][$paramfunct].map |$setfunct| {"'${setfunct}'"} -%>
+<%         $joinedsetsfunct = $validsetsfunct.join(',') -%>
+<%-         "@{ Name = '${paramfunct}';ValidateSet= ${joinedsetsfunct} }" -%>
+<%       }elsif  $valuesfunct['validatepattern'] and $valuesfunct['validatepattern'][$paramfunct]  { -%>
+<%         $validpatternsfunct = $valuesfunct['validatepattern'][$paramfunct].map |$setfunct| {"'${setfunct}'"} -%>
+<%         $joinedsetsfunct = $validpatternsfunct.join(',') -%>
+<%-         "@{ Name = '${paramfunct}';ValidatePattern= ${joinedsetsfunct} }" -%>
+<%       } else { -%>
+<%-         "@{Name  = '$paramfunct'}" -%>
+<%       } -%>
+<%     } -%>
+<%     $joinedparametersfunct = $parametersfunction.join(',') -%>
+<%-     "@{ Name = '${keyfunct}';Parameters = ${joinedparametersfunct} }" -%>
+<%   } -%>
+<% } -%>
+<%= $fullfunctions.join(",\r\n") %>
+<%  -%>
+<% if $visiblecmdlets.size != 0 { -%>
+# Cmdlets to make visible when applied to a session
+VisibleCmdlets = 
+<% } -%>
+<%# These have the most complex structure, as they can be just a list of cmdlets -%>
+<%# The cmdlets can also have a set of optional parameters, and each of the optional -%>
+<%# parameters can also have a set of optional validation sets or regex -%>
+<%# The idea with the mapping, is to get each line built and put into an array -%>
+<%# and then just print out the joined array. -%>
+<% $fullcmdlets = $visiblecmdlets.map |$keys, $values| { -%>
+<%   if ! $values { -%>
+<%-     "'${keys}'" -%>
+<%   }else{ -%>
+<%     $parameters = $values['parameters'].map |$param| { -%>
+<%       if $values['validatesets'] and $values['validatesets'][$param] { -%>
+<%         $validsets = $values['validatesets'][$param].map |$set| {"'${set}'"} -%>
+<%         $joinedsets = $validsets.join(',') -%>
+<%-         "@{ Name = '${param}';ValidateSet= ${joinedsets} }" -%>
+<%       }elsif  $values['validatepattern'] and $values['validatepattern'][$param]  { -%>
+<%         $validpatterns = $values['validatepattern'][$param].map |$set| {"'${set}'"} -%>
+<%         $joinedsets = $validpatterns.join(',') -%>
+<%-         "@{ Name = '${param}';ValidatePattern= ${joinedsets} }" -%>
+<%       } else { -%>
+<%-         "@{Name  = '$param'}" -%>
+<%       } -%>
+<%     } -%>
+<%     $joinedparameters = $parameters.join(',') -%>
+<%-     "@{ Name = '${keys}';Parameters = ${joinedparameters} }" -%>
+<%   } -%>
+<% } -%>
+<%= $fullcmdlets.join(",\r\n") %>
+<%# The visible commands are just a list of names, so assuming that they are used -%>
+<%# Then just put quotes around then and print them as comma separated -%>
+<% if $visiblecommands.size != 0 { -%>
+<% $fullcommands = $visiblecommands.map |$fcommands| {"'${fcommands}'"} -%>
+# External commands (scripts and applications) to make visible when applied to a session
+VisibleExternalCommands = 
+<%= $fullcommands.join(",\r\n") %>
+<% } -%>
+<%# The providers are just a list of names, so assuming that they are used -%>
+<%# Then just put quotes around then and print them as comma separated -%>
+<% if $visibleproviders.size != 0 { -%>
+<% $fullproviders = $visibleproviders.map |$fproviders| {"'${fproviders}'"} -%>
+# Providers to make visible when applied to a session
+VisibleProviders = 
+<%= $fullproviders.join(",\r\n") %>
+<% } -%>
+<% if $scriptstoprocessrole.size != 0 { -%>
+<% $fullscriptsrole = $scriptstoprocessrole.map |$fscriptsrole| {"'${fscriptsrole}'"} -%>
+# Scripts to run when applied to a session
+ScriptsToProcess = <%= $fullscriptsrole.join(',') %>
+<% } -%>
+<% if $aliasdefinitions.size != 0 { -%>
+# Aliases to be defined when applied to a session
+AliasDefinitions = 
+<% } -%>
+<% $fullaliasdef = $aliasdefinitions.map |$keyaliasdef, $valuesaliasdef| { -%>
+<%-     "@{ Name = '${keyaliasdef}';Value = '${valuesaliasdef}' }" -%>
+<% } -%>
+<%= $fullaliasdef.join(",\r\n") -%>
+<% if $environmentvariables.size != 0 { -%>
+# Environment variables to define when applied to a session
+EnvironmentVariables = 
+<% } -%>
+<% $fullenvariables= $environmentvariables.map |$keyvariable, $valuevariable| { -%>
+<%-     "@{ '${keyvariable}' = '${valuevariable}' }" -%>
+<% } -%>
+<%= $fullenvariables.join(",\r\n") -%>
+<% if $functiondefinitions.size != 0 { -%>
+# Functions to define when applied to a session
+FunctionDefinitions = 
+<% } -%>
+<% $fullfunctiondef = $functiondefinitions.map |$keyfunctdef, $valuesfunctdef| { -%>
+<%-     "@{ Name = '${keyfunctdef}';Scriptblock = { ${$valuesfunctdef} } }" -%>
+<% } -%>
+<%= $fullfunctiondef.join(",\r\n") %>
+<% if $variabledefinitions.size != 0 { -%>
+# Variables to define when applied to a session
+VariableDefinitions = 
+<% } -%>
+<% $fullvariabledef = $variabledefinitions.map |$keyvardef, $valuesvardef| { -%>
+<%-     "@{ Name = '${keyvardef}';Value = { ${$valuesvardef} } }" -%>
+<% } -%>
+<%= $fullvariabledef.join(",\r\n") %>
+<% if $typestoprocess.size != 0 { -%>
+<% $fulltypes = $typestoprocess.map |$types| {"'${ftypes}'"} -%>
+# Type files (.ps1xml) to load when applied to a session
+TypesToProcess = <%= $fulltypes.join(',') %>
+<% } -%>
+<% if $formatstoprocess.size != 0 { -%>
+<% $fullformats = $formatstoprocess.map |$fformats| {"'${fformats}'"} -%>
+# Format files (.ps1xml) to load when applied to a session
+FormatsToProcess = <%= $fullformats.join(',') %>
+<% } %>
+<% if $modulestoimport.size != 0 { -%>
+<% $fullmodulestoimport = $modulestoimport.map |$mtoimport| {"'${mtoimport}'"} -%>
+# Modules to load when applied to a session
+ModulesToImport = <%= $fullmodulestoimport.join(',') %>
+<% } %>
+}

@@ -1,0 +1,26 @@
+<%- | Enum['RestrictedRemoteServer','Empty','Default'] $sessiontype,
+      Hash $roledefinitions,
+      String $runasvirtualaccountstring,
+      Optional[String] $transcriptdirectory = '',
+      Optional[Array] $scriptstoprocess = [],
+| -%>
+@{
+# Session type defaults to apply for this session configuration. Can be 'RestrictedRemoteServer' (recommended), 'Empty', or 'Default'
+SessionType = '<%= $sessiontype %>'
+# Whether to run this session configuration as the machine's (virtual) administrator account
+RunAsVirtualAccount = <%= $runasvirtualaccountstring %>
+# Directory to place session transcripts for this session configuration
+TranscriptDirectory = '<%= $transcriptdirectory %>'
+<% if $scriptstoprocess.size != 0 { -%>
+<% $fullscripts = $scriptstoprocess.map |$fscripts| {"'${fscripts}'"} -%>
+# Scripts to run when applied to a session
+ScriptsToProcess = <%= $fullscripts.join(',') %>
+<% } -%>
+# User roles (security groups), and the role capabilities that should be applied to them when applied to a session
+RoleDefinitions = @{
+<% $roledefinitions.keys.each |$identity| { -%>
+  <% $newarray= $roledefinitions[$identity].map |$node| {"'${node}'"} -%>
+    '<%= $ad_domain %>\<%= $identity %>' = @{ RoleCapabilities = <%= $newarray.join(',') %> }
+<% } -%>
+  }
+}

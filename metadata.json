@@ -1,0 +1,27 @@
+{
+  "name": "puppet-jea",
+  "version": "0.1.1",
+  "author": "Ivica Agatunovic",
+  "summary": "Just Enough Administration module for Windows",
+  "license": "proprietary",
+  "source": "https://github.com/ivicaagatunovic/puppet-jea.git",
+  "project_page": "https://github.com/ivicaagatunovic/puppet-jea.git",
+  "issues_url": "https://github.com/ivicaagatunovic/puppet-jea.git",
+  "dependencies": [],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "windows",
+      "operatingsystemrelease": [
+        "2022",
+        "2019",
+        "2016"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 6.0.0 < 7.0.0"
+    }
+  ]
+}

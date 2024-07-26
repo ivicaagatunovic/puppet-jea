@@ -1,0 +1,10 @@
+---
+
+# Define the default values of your module here, please keep in mind that thoses
+# values must be isoprod
+# it means that you should override on sandbox or preprod but not on prod
+puppet-jea::jeaenable: false
+puppet-jea::configname: 'jea-config'
+puppet-jea::runasvirtualaccount: true
+puppet-jea::sessiontype: 'RestrictedRemoteServer'
+puppet-jea::transcriptdirectory: 'C:\LOGS\Transcripts'
